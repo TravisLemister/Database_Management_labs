@@ -1,0 +1,122 @@
+cmpt308/
+  lab3/
+    lab3.sql
+
+Create Table Customer(
+	customer_id Integer Primary Key,
+	name Varchar(50) Not Null
+);
+
+Create Table Product(
+	product_id Integer Primary Key,
+	product_name Varchar(100) Not Null
+);
+
+Create Table Orders (
+	order_id Integer Primary Key,
+	customer_id Integer Not Null, 
+	status Varchar(25),
+	Foreign Key (customer_id) References Customer (customer_id)
+);
+
+Create Table Order_items (
+	order_id Integer,
+	product_id Integer,
+	quantity Integer Not Null,
+	Primary Key(order_id, product_id),
+	Foreign Key (order_id) References Orders (order_id),
+	Foreign Key (product_id) References Product(product_id),
+	Constraint check_if_positive Check (quantity > 0)
+);
+
+Insert Into Customer (customer_id, name) Values
+(1, 'Alice Vane'),
+(2, 'Bob Miller'),
+(3, 'Charlie Day'),
+(4, 'Diana Prince'), 
+(5, 'Ethan Hunt'),
+(6, 'Fiona Apple'),
+(7, 'George Bluth'),
+(8, 'Hannah Abbott');
+
+Insert Into Product (product_id, product_name) Values 
+(101, 'Mechanical Keyboard'),
+(102, 'Ergonomic Mouse'),
+(103, '4K Monitor'),
+(104, 'Standing Desk'),
+(105, 'Office Chair'),
+(106, 'LED Desk Lamp'), 
+(107, 'HD Webcam'),
+(108, 'USB-C Cable');
+
+Insert Into Orders (order_id, customer_id, status) Values 
+(501, 1, 'Shipped'),
+(502, 2, Null),
+(503, 3, 'Delivered'),
+(504, 4, Null), 
+(505, 5, 'Shipped'),
+(506, 6, Null),
+(507, 7, 'Cancelled'),
+(508, 8, 'Shipped');
+
+Insert Into Order_items (order_id, product_id, quantity) Values 
+(501, 101, 1),
+(501, 108, 2),
+(502, 102, 1),
+(502, 103, 1),
+(503, 104, 1),
+(503, 105, 1),
+(504, 106, 3),
+(505, 101, 1),
+(505, 107, 1),
+(506, 108, 5),
+(506, 102, 2),
+(507, 103, 1),
+(508, 104, 1),
+(508, 105, 1),
+(508, 101, 1);
+
+--Two Table Join --
+Select Customer.name, Orders.order_id
+From Customer Join Orders
+On Customer.customer_id = Orders.customer_id;
+
+--Three Table Join --
+Select Orders.order_id, Product.product_name, Order_items.quantity
+From Orders
+Join Order_items 
+	On Orders.order_id = Order_Items.order_id
+Join Product 
+	On Order_Items.product_id = Product.product_id;
+
+--Join + Filter--
+Select Order_items.order_id, Product.product_name, Order_items.quantity
+From Order_items
+Join Product 
+	On Order_Items.product_id = Product.product_id
+Where Order_items.quantity >=2;
+
+--Join Projection + Sort--
+Select Customer.name, Order_items.order_id, Order_items.quantity, Order_items.product_id
+From Customer
+Join Orders 
+	On Customer.customer_id = Orders.customer_id
+Join Order_items 
+	On Orders.order_id = Order_Items.order_id
+Order By Order_Items.quantity Desc;
+
+--NULL query--
+Select * 
+From Orders
+Where status is NULL;
+
+--FK activation--
+Insert Into Order_items (order_id, product_id, quantity) 
+Values (9999, 101, 1);
+
+--Check Violation--
+Insert Into Order_items (order_id, product_id, quantity) 
+Values (501, 102, 0);
+
+README.md
+The scenario I had was making a database for an online store. 
