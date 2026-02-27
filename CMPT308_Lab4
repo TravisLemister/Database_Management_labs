@@ -1,5 +1,122 @@
+--Travis Lemister, February 26,2026--
+--I reused most of my data from lab 2 but needed to make a few adjustments, because I didn't do 
+it the same the first time, to match the queries in this lab--
+
 cmpt308/
   lab4/
     lab4.sql
+
+--To insert a course with null enrollments--
+Insert into courses (course_id, title, credits)
+Values
+(312, 'Internetworking', 4);
+
+--I added a few more students b/c I wanted more--
+Insert into students (student_id, name, major, class_year)
+Values
+	(1234, 'Eric Anderson', 'BUS', 2029),
+	(1235, 'Sam Cauller', 'ENG', 2027),
+	(1776, 'Henry Monahue', 'CS', 2028),
+	(1892, 'Caroline Smith', 'CS', 2029);
+
+--I needed more enrollments for part B--
+Insert into enrollments (student_id, course_id, term, grade)
+Values
+	(1234, 503, 'Spring 2026', 'C+'),
+	(1776, 501, 'Spring 2026', 'B+'),
+	(1892, 503, 'Spring 2026', 'A'),
+	(1235, 504, 'Spring 2026', 'B-'),
+	(1776, 504, 'Spring 2026', 'C-'),
+	(1234, 501, 'Spring 2026', 'A');
+
+--Part A--
+Select s.name, e.course_id
+From students s
+Inner Join enrollments e 
+On s.student_id = e.student_id
+Where e.term = 'Spring 2026';
+
+Select s.name, c.title, e.term
+From students s
+Inner Join enrollments e 
+	On s.student_id = e.student_id
+Inner Join courses c 
+	On e.course_id = c.course_id
+Where e.term = 'Spring 2026';
+
+Select c.course_id, c.title, Count(e.student_id) As enrollments
+From courses c
+Left Join enrollments e 
+On c.course_id = e.course_id And e.term = 'Spring 2026'
+Group By c.course_id, c.title;
+
+--Part B--
+Select major, Count(student_id) As num_students
+From students
+Group By major
+Order By num_students DESC;
+
+Select c.course_id, c.title, Count(e.student_id) As num_enrollments
+From courses c
+Inner Join enrollments e 
+  On c.course_id = e.course_id
+Where e.term = 'Spring 2026'
+Group By c.course_id, c.title;
+
+Select course_id, Count(student_id) As num_enrollments
+From enrollments
+Where term = 'Spring 2026'
+Group By course_id
+Having Count (student_id) >= 3;
+
+--Part C--
+--I did not have any course_id set for 'CMPT308' so I instead used 504--
+
+Select name 
+From Students 
+Where student_id In (Select student_id 
+                      From Enrollments 
+                      Where course_id = '504' 
+                      And term = 'Spring 2026')
+
+Select c.course_id, c.title
+From courses c
+Where Exists (Select 1 
+              From Enrollments e 
+              Where e.course_id = c.course_id 
+              And e.term = 'Spring 2026')
+
+Select s.name
+From students s
+Join enrollments e 
+  On s.student_id = e.student_id
+Where e.term = 'Spring 2026'
+Group BY s.student_id, s.name
+Having Count(e.course_id) >= 2;
+
+--Part D--
+Select student_id, name
+From students
+Where major = 'CS'
+
+Union
+
+Select student_id, name
+From students
+Where major = 'ENG';
+
+----
+Select student_id, name
+From students
+Where major = 'CS'
+
+Except
+
+Select s.student_id, s.name
+From Students s
+Inner Join enrollments e On s.student_id = e.student_id
+Where e.course_id = '501' 
+  And e.term = 'Spring 2026';
+
 
     README.md
