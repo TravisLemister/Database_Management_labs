@@ -1,0 +1,71 @@
+--Travis Lemister, March 24,2026--
+
+cmpt308/
+  lab5/
+    lab5.sql
+README.md
+  Instead of using 'cmpt308' and other course _ids, I used course_ids that i already had existing including '501', '502', '503', and used 'Spring 2026'
+  instead of '2026SP'.
+
+  
+--Part A--
+--IN--
+Select student_id, name
+From students
+Where student_id In (
+    Select student_id
+    From Enrollments
+    Where course_id = '501' and term = 'Spring 2026'
+    );
+
+--Exists--
+Select course_id, title
+From Courses c
+Where Exists(
+    Select 1
+    From Enrollments e
+    Where e.course_id = c.course_id and e.term = 'Spring 2026'
+    );
+
+  --Not Exists-- 
+Select student_id, name
+From students s
+Where Not Exists(
+    Select 1
+    From enrollments e
+    Where e.student_id = s.student_id and e.term = 'Spring 2026'
+    );
+
+--Union--
+Select student_id
+From enrollments
+Where course_id = '501' and term = 'Spring 2026'
+
+UNION
+
+Select student_id
+From Enrollments
+Where course_id = '502' and term = 'Spring 2026';
+
+--Intersect--
+Select student_id
+From Enrollments
+Where course_id = '501' and term = 'Spring 2026'
+
+INTERSECT
+
+Select student_id
+From Enrollments
+Where course_id = '503' and term = 'Spring 2026';
+
+--Except--
+Select student_id
+From Enrollments
+Where course_id = '501' and term = 'Spring 2026'
+
+EXCEPT
+
+Select student_id
+From Enrollments
+Where course_id = '503' and term = 'Spring 2026';
+
