@@ -34,22 +34,18 @@ Commit;
 Select * From Accounts;
 
 --Part C--
-UPDATE Accounts SET balance = 500 Where account_id = 1;
-UPDATE Accounts SET balance = 300 Where account_id = 2;
-UPDATE Accounts SET balance = 200 Where account_id = 3;
+UPDATE Accounts SET balance = 500 WHERE account_id = 1;
+UPDATE Accounts SET balance = 300 WHERE account_id = 2;
 
-Select * From Accounts;
+BEGIN; 
 
-BEGIN;
+UPDATE Accounts 
+SET balance = balance - 100 
+WHERE account_id = 1;
 
-Update Accounts 
-Set balance = balance - 100 
-Where account_id = 1;
-
-Update Accounts 
-Set balance = balance + 100 
-Where account_id = 2;
-
+UPDATE Accounts 
+SET balance = balance + 100 
+WHERE account_id = 2;
 ROLLBACK;
 
 Select * From Accounts;
