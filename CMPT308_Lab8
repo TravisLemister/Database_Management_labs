@@ -1,0 +1,40 @@
+--Travis Lemister April 6, 2026--
+
+cmpt308/
+  lab7/
+    lab7.sql
+
+--Setup--
+DROP TABLE IF EXISTS lab8_enrollment_audit;
+DROP TABLE IF EXISTS lab8_enrollments;
+DROP TABLE IF EXISTS lab8_courses;
+DROP TABLE IF EXISTS lab8_students;
+
+CREATE TABLE lab8_students (
+  student_id INT PRIMARY KEY,
+  student_name TEXT NOT NULL
+);
+
+CREATE TABLE lab8_courses (
+  course_id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  capacity INT NOT NULL CHECK (capacity > 0),
+  enrolled_count INT NOT NULL DEFAULT 0 CHECK (enrolled_count >= 0 AND enrolled_count <= capacity)
+);
+
+CREATE TABLE lab8_enrollments (
+  student_id INT NOT NULL REFERENCES lab8_students(student_id),
+  course_id TEXT NOT NULL REFERENCES lab8_courses(course_id),
+  enrolled_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (student_id, course_id)
+);
+
+CREATE TABLE lab8_enrollment_audit (
+  audit_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  action_type TEXT NOT NULL,
+  student_id INT NOT NULL,
+  course_id TEXT NOT NULL,
+  action_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+
