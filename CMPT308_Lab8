@@ -37,4 +37,7 @@ CREATE TABLE lab8_enrollment_audit (
   action_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Sample Data --
 
+  -- Sample Students --
+    
