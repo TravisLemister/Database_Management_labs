@@ -39,5 +39,126 @@ CREATE TABLE lab8_enrollment_audit (
 
 -- Sample Data --
 
-  -- Sample Students --
+  -- Students --
+    INSERT INTO lab8_students (student_id, student_name) VALUES
+    (101, 'Alice Johnson'),
+    (102, 'Bob Smith'),
+    (103, 'Charlie Davis'),
+    (104, 'Diana Prince');
+
+  -- Courses --
+    INSERT INTO lab8_courses (course_id, title, capacity, enrolled_count) VALUES
+    ('CS101', 'Intro to Computer Science', 30, 0),
+    ('ART200', 'Intro to Photography', 2, 0),
+    ('MATH301', 'Linear Algebra', 15, 0);
+
+--Part A--
+
+CREATE ROLE advisor_role;
+CREATE ROLE registrar_role;
+
+GRANT SELECT ON lab8_students, lab8_courses, lab8_enrollments TO advisor_role;
+GRANT SELECT ON lab8_students, lab8_courses, lab8_enrollments TO registrar_role;
+GRANT INSERT ON lab8_enrollments TO registrar_role;
+GRANT UPDATE ON lab8_courses TO registrar_role;
+
+REVOKE DELETE ON lab8_enrollments FROM registrar_role;
+
+SELECT grantee, table_name, privilege_type
+FROM information_schema.role_table_grants
+WHERE grantee IN ('advisor_role', 'registrar_role')
+  AND table_name IN ('lab8_students', 'lab8_courses', 'lab8_enrollments')
+ORDER BY grantee, table_name, privilege_type;
+
+
+--Part B--
+CREATE OR REPLACE PROCEDURE register_student(p_sid INT, p_cid TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+    IF (SELECT enrolled_count FROM lab8_courses WHERE course_id = p_cid) >= 
+       (SELECT capacity FROM lab8_courses WHERE course_id = p_cid) THEN
+        RAISE EXCEPTION 'Course is full';
+    END IF;
+
+    INSERT INTO lab8_enrollments (student_id, course_id) VALUES (p_sid, p_cid);
+    
+    UPDATE lab8_courses 
+    SET enrolled_count = enrolled_count + 1 
+    WHERE course_id = p_cid;
+END;
+$$;
+
+CALL register_student(101, 'CS101');
+
+CALL register_student(101, 'ART200');
+CALL register_student(102, 'ART200');
+
+--class is full attempt--
+CALL register_student(103, 'ART200');
+
+-- Part C --
+--Trigger Function--
+  CREATE OR REPLACE FUNCTION audit_enrollment_insertion()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      INSERT INTO lab8_enrollment_audit (action_type, student_id, course_id, action_time)
+      VALUES ('INSERT', NEW.student_id, NEW.course_id, CURRENT_TIMESTAMP);
+    
+      RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql;
+
+--Create Trigger--
+CREATE TRIGGER trg_enrollment_insert
+AFTER INSERT ON lab8_enrollments
+FOR EACH ROW
+EXECUTE FUNCTION audit_enrollment_insertion();
+
+--Tests--
+CALL register_student(103, 'MATH301');
+
+SELECT * FROM lab8_enrollment_audit;
+
+--Part D--
+
+  --Enrollment List--
+SELECT 
+    s.student_name, 
+    e.course_id, 
+    c.title, 
+    e.enrolled_at
+FROM lab8_enrollments e
+JOIN lab8_students s ON e.student_id = s.student_id
+JOIN lab8_courses c ON e.course_id = c.course_id
+ORDER BY e.enrolled_at DESC;
+
+  --Seats Remaining--
+SELECT 
+    course_id, 
+    title, 
+    capacity, 
+    enrolled_count, 
+    (capacity - enrolled_count) AS seats_remaining
+FROM lab8_courses
+ORDER BY seats_remaining ASC;
+
+  --Audit Log Report--
+SELECT 
+    audit_id, 
+    action_type, 
+    student_id, 
+    course_id, 
+    action_time
+FROM lab8_enrollment_audit
+ORDER BY action_time ASC;
+
+  --Privelege Report--
+SELECT 
+    grantee, 
+    table_name, 
+    privilege_type
+FROM information_schema.role_table_grants
+WHERE grantee IN ('advisor_role', 'registrar_role')
+  AND table_name IN ('lab8_students', 'lab8_courses', 'lab8_enrollments')
+ORDER BY grantee, table_name;
     
